@@ -1,14 +1,11 @@
 import { galleryItems } from './gallery-items.js';
 // Change code below this line
 
+
 console.log(galleryItems);
 
-
-
 const container = document.querySelector(".gallery");
-
-container.insertAdjacentHTML("beforeend", createMarkup(galleryItems));
-container.addEventListener("click", handleClick);
+let instance = null;  
 
 function createMarkup(arr) {
     return arr.map(({ preview, original, description }) => 
@@ -20,30 +17,42 @@ function createMarkup(arr) {
     ).join("");
 };
 
+function handleKeyPress(event) {
+  if (event.code === 'Escape' && instance) {
+    instance.close();
+  }
+}
+
+container.insertAdjacentHTML("beforeend", createMarkup(galleryItems));
+container.addEventListener("click", handleClick);
 
 function handleClick(event) {
-    event.preventDefault()
+  event.preventDefault()
 
-    if (event.target === event.currentTarget) {
-        return;
+  if (event.target === event.currentTarget) {
+    return;
+  }
+  const modalImg = event.target.closest('.gallery__link').getAttribute('href');
+
+  if (instance) {
+    instance.close(); 
+    instance = null; 
+  }
+
+
+  instance = basicLightbox.create(
+    `
+      <img class="gallery__image" src="${modalImg}" alt="${modalImg.description}">
+    `,
+    {
+      onShow: () => {
+        document.addEventListener('keydown', handleKeyPress);
+      },
+      onClose: () => {
+        document.removeEventListener('keydown', handleKeyPress);
+      },
     }
+  );
 
-
-
-    const modalImg = event.target.closest(".gallery__link").getAttribute("href");
-    
-    const instance = basicLightbox.create(`
-    <img class="gallery__image" src="${modalImg}" alt="${modalImg.description}">
-    `);
-    // console.log(modalImg)
-    instance.show()
-
-
-
-    document.addEventListener("keydown", (event) => {
-        if (event.code === "Escape") {
-            return instance.close();
-        }
-        return;
-    })
+  instance.show();
 }
